@@ -1,0 +1,120 @@
+{
+  "name": "OKAYiT – Your Safe Space",
+  "short_name": "OKAYiT",
+  "description": "A private, caring digital space for young people in care homes. Check-ins, journaling, safety plans, and a direct line to trusted adults.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#faf5ff",
+  "theme_color": "#7c3aed",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "categories": ["health", "lifestyle", "social", "education"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Daily Check-in",
+      "short_name": "Check-in",
+      "description": "Tell us how you're feeling today",
+      "url": "/?section=personal-wellbeing",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "My Journal",
+      "short_name": "Journal",
+      "description": "Write about your day",
+      "url": "/?section=my-journal",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Get Help",
+      "short_name": "Help",
+      "description": "Reach out to a trusted adult",
+      "url": "/?section=support-center",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Safety Plan",
+      "short_name": "Safety",
+      "description": "Your personal safety plan",
+      "url": "/?section=safety-plan",
+      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96", "type": "image/png" }]
+    }
+  ]
+}

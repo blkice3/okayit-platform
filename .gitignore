@@ -1,0 +1,46 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build output
+/.next/
+/.build/
+/out/
+/dist
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment & secrets (NEVER commit these)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/.logs
+
+# Deployment artefacts
+/.deploy
+
+# OS / editor
+.DS_Store
+*.pem
+.vscode/
+.idea/
+*.nfs*
+
+# Local one-off scripts
+_*.ts

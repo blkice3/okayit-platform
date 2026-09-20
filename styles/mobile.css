@@ -1,0 +1,429 @@
+
+/* Mobile-first CSS utilities for touch interfaces and PWA */
+
+/* Safe Area Support */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+.pt-safe-top {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.pb-safe-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.pl-safe-left {
+  padding-left: var(--safe-area-inset-left);
+}
+
+.pr-safe-right {
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Touch-friendly Interactive Elements */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.touch-button {
+  @apply touch-target;
+  @apply rounded-lg;
+  @apply active:scale-95;
+  @apply transition-transform duration-100;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Scrolling */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mobile-scroll-horizontal {
+  @apply mobile-scroll;
+  @apply overflow-x-auto overflow-y-hidden;
+  @apply flex flex-nowrap;
+}
+
+.mobile-scroll-vertical {
+  @apply mobile-scroll;
+  @apply overflow-y-auto overflow-x-hidden;
+}
+
+/* Pull to Refresh Styles */
+.pull-to-refresh {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile Cards */
+.mobile-card {
+  @apply rounded-2xl;
+  @apply shadow-lg;
+  @apply border border-white/20;
+  @apply backdrop-blur-xl;
+  @apply bg-white/80 dark:bg-gray-800/80;
+  @apply active:scale-[0.98];
+  @apply transition-all duration-200;
+}
+
+.mobile-card-swipeable {
+  @apply mobile-card;
+  touch-action: pan-x;
+  cursor: grab;
+}
+
+.mobile-card-swipeable:active {
+  cursor: grabbing;
+}
+
+/* Mobile Navigation */
+.mobile-nav-item {
+  @apply touch-target;
+  @apply flex flex-col items-center justify-center;
+  @apply p-2 rounded-xl;
+  @apply transition-all duration-300;
+  @apply text-gray-600 dark:text-gray-300;
+  @apply active:scale-90;
+  min-width: 60px;
+}
+
+.mobile-nav-item.active {
+  @apply bg-gradient-to-t from-indigo-600 to-purple-600;
+  @apply text-white;
+  @apply shadow-lg;
+}
+
+.mobile-nav-item:not(.active):hover {
+  @apply bg-white/50 dark:bg-gray-800/50;
+}
+
+/* Touch Gestures */
+.swipeable {
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.swipeable-vertical {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pinchable {
+  touch-action: pinch-zoom;
+}
+
+/* Mobile Form Elements */
+.mobile-input {
+  @apply w-full px-4 py-3;
+  @apply text-base; /* Prevents zoom on iOS */
+  @apply rounded-xl;
+  @apply border border-gray-300 dark:border-gray-600;
+  @apply bg-white/90 dark:bg-gray-800/90;
+  @apply backdrop-blur-sm;
+  @apply focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500;
+  @apply transition-all duration-200;
+}
+
+.mobile-button {
+  @apply touch-target;
+  @apply px-6 py-3;
+  @apply text-base font-semibold;
+  @apply rounded-xl;
+  @apply transition-all duration-200;
+  @apply active:scale-95;
+  @apply shadow-md hover:shadow-lg;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-button-primary {
+  @apply mobile-button;
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600;
+  @apply text-white;
+  @apply hover:from-indigo-700 hover:to-purple-700;
+}
+
+.mobile-button-secondary {
+  @apply mobile-button;
+  @apply bg-white/80 dark:bg-gray-800/80;
+  @apply text-gray-900 dark:text-white;
+  @apply border border-gray-200 dark:border-gray-600;
+  @apply backdrop-blur-md;
+}
+
+/* Floating Action Button */
+.fab {
+  @apply fixed;
+  @apply w-14 h-14;
+  @apply rounded-full;
+  @apply shadow-2xl;
+  @apply border-2 border-white/20;
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600;
+  @apply text-white;
+  @apply flex items-center justify-center;
+  @apply transition-all duration-300;
+  @apply hover:scale-110;
+  @apply active:scale-95;
+  z-index: 40;
+}
+
+/* Mobile Typography */
+.mobile-title {
+  @apply text-2xl font-bold;
+  @apply text-gray-900 dark:text-white;
+  @apply leading-tight;
+}
+
+.mobile-subtitle {
+  @apply text-lg font-semibold;
+  @apply text-gray-700 dark:text-gray-200;
+}
+
+.mobile-body {
+  @apply text-base;
+  @apply text-gray-600 dark:text-gray-300;
+  @apply leading-relaxed;
+}
+
+.mobile-caption {
+  @apply text-sm;
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+/* Mobile Spacing */
+.mobile-spacing {
+  @apply space-y-4;
+}
+
+.mobile-section {
+  @apply px-4 py-6;
+}
+
+.mobile-container {
+  @apply max-w-sm mx-auto px-4;
+}
+
+/* Animation Classes */
+.slide-up-enter {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.slide-up-enter-active {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.slide-up-exit {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.slide-up-exit-active {
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+}
+
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* PWA Specific Styles */
+.pwa-fullscreen {
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+.pwa-safe-bottom {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+/* Haptic Feedback Animation */
+@keyframes haptic-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.haptic-feedback {
+  animation: haptic-pulse 0.15s ease-out;
+}
+
+/* Mobile Loading States */
+.mobile-skeleton {
+  @apply animate-pulse bg-gray-300 dark:bg-gray-700 rounded;
+}
+
+.mobile-spinner {
+  @apply animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full;
+}
+
+/* Mobile Status Indicators */
+.status-online {
+  @apply w-2 h-2 bg-green-500 rounded-full animate-pulse;
+}
+
+.status-offline {
+  @apply w-2 h-2 bg-red-500 rounded-full;
+}
+
+.status-syncing {
+  @apply w-2 h-2 bg-yellow-500 rounded-full animate-ping;
+}
+
+/* Mobile Media Queries */
+@media (max-width: 640px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .mobile-only {
+    display: none !important;
+  }
+  
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* iOS Specific */
+@supports (-webkit-appearance: none) {
+  .ios-bounce-fix {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Android Specific */
+@media screen and (max-width: 640px) {
+  .android-input-zoom-fix {
+    font-size: 16px !important;
+  }
+}
+
+/* Dark Mode Adjustments for Mobile */
+@media (prefers-color-scheme: dark) {
+  .mobile-glass {
+    @apply bg-gray-900/80 backdrop-blur-xl;
+    @apply border-gray-700/30;
+  }
+}
+
+/* Accessibility Improvements for Mobile */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-card,
+  .mobile-button,
+  .touch-button {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .mobile-card {
+    @apply border-2 border-gray-900 dark:border-white;
+  }
+  
+  .mobile-button-primary {
+    @apply bg-blue-700 border-2 border-white;
+  }
+}
+
+/* =============================================================
+   Enhanced PWA Polish (OKAYiT v3)
+   ============================================================= */
+
+/* Safe-area utilities (tailwind-compatible naming) */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pl-safe { padding-left: env(safe-area-inset-left); }
+.pr-safe { padding-right: env(safe-area-inset-right); }
+
+.mt-safe { margin-top: env(safe-area-inset-top); }
+.mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+
+.h-screen-safe { min-height: 100dvh; }
+
+/* Prevent iOS auto-zoom on input focus. All interactive inputs must be >=16px. */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Kill the grey iOS/Android tap flash everywhere. */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Make buttons and links feel native: no double-tap zoom, no text selection */
+button, a[role="button"], [data-app-button] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* When rendered as a PWA, hide any browser-only hints */
+@media all and (display-mode: standalone) {
+  .hide-in-app { display: none !important; }
+}
+
+/* Smooth, sub-pixel scrolling */
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+/* Ensure main scroll areas never overscroll the page itself on iOS */
+body { overscroll-behavior-y: contain; }
+
+/* Pretty focus ring for keyboard users, quiet for mouse/touch */
+:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Hydration error suppression \u2013 safety net */
+[data-hydration-error] { display: none !important; }

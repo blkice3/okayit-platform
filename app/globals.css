@@ -1,0 +1,904 @@
+/* ============================================
+   OKAYiT PLATFORM - PROFESSIONAL STYLING
+   ============================================
+   Premium care home platform with optional
+   dyslexia-friendly mode via accessibility toggle
+   ============================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import OpenDyslexic font for accessibility */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  /* ============================================
+     PROFESSIONAL DEFAULT THEME
+     Bright, welcoming, positive atmosphere
+     ============================================ */
+  :root {
+    /* Bright warm white - welcoming and positive */
+    --background: 40 40% 98%;
+    /* Strong dark text for excellent readability */
+    --foreground: 222 47% 8%;
+    --foreground-hex: #111827;
+    --card-bg: #FFFFFF;
+    
+    /* Card styling - crisp white */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 8%;
+    
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 8%;
+    
+    /* Primary - Vibrant indigo */
+    --primary: 243 75% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Light and airy */
+    --secondary: 240 10% 95%;
+    --secondary-foreground: 222 47% 8%;
+    
+    /* Muted - Soft but readable - DARKER for better contrast */
+    --muted: 240 10% 94%;
+    --muted-foreground: 222 47% 15%;
+    
+    /* Accent - Fresh and inviting */
+    --accent: 245 80% 96%;
+    --accent-foreground: 222 47% 8%;
+    
+    /* Destructive */
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements - Light borders */
+    --border: 220 15% 88%;
+    --input: 220 15% 92%;
+    --ring: 243 75% 55%;
+    --radius: 0.75rem;
+    
+    /* Charts - Vibrant colors */
+    --chart-1: 243 75% 55%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 25 85% 55%;
+    --chart-4: 280 70% 58%;
+    --chart-5: 340 80% 52%;
+  }
+
+  /* Dark Theme — OKAYiT signature deep navy-blue */
+  .dark, [data-theme="dark"] {
+    --background: 235 55% 9%;        /* ~#0B0D2E deep navy */
+    --foreground: 0 0% 100%;         /* pure white */
+    --foreground-hex: #f0f0ff;
+    --card-bg: #161840;
+    --card: 235 50% 17%;             /* ~#161840 card surface */
+    --card-foreground: 0 0% 100%;
+    --popover: 235 50% 19%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 250 80% 65%;          /* vibrant purple-blue accent */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 235 45% 22%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 235 40% 20%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 250 45% 28%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 235 40% 26%;
+    --input: 235 40% 22%;
+    --ring: 250 80% 65%;
+  }
+
+  /* ============================================
+     HIGH CONTRAST MODE
+     ============================================ */
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 0%;
+    --primary: 240 100% 27%;
+    --border: 0 0% 0%;
+  }
+
+  .high-contrast.dark {
+    --background: 0 0% 97%;
+    --foreground: 0 0% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+    --muted-foreground: 0 0% 10%;
+    --primary: 220 100% 40%;
+    --border: 0 0% 70%;
+    --input: 0 0% 90%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  /* ============================================
+     DEFAULT BODY STYLING
+     Professional, clean typography
+     ============================================ */
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: hsl(var(--foreground));
+  }
+
+  h1 { @apply text-3xl sm:text-4xl; font-weight: 800; }
+  h2 { @apply text-2xl sm:text-3xl; font-weight: 700; }
+  h3 { @apply text-xl sm:text-2xl; font-weight: 700; }
+  h4 { @apply text-lg sm:text-xl; font-weight: 600; }
+  h5 { @apply text-base sm:text-lg; font-weight: 600; }
+  h6 { @apply text-sm sm:text-base; font-weight: 600; }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: hsl(var(--foreground));
+  }
+
+  /* Links */
+  a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Strong/Bold */
+  strong, b {
+    font-weight: 700;
+  }
+
+  /* Labels */
+  label {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+
+  /* Lists */
+  li {
+    line-height: 1.7;
+  }
+
+  /* Inputs */
+  input, textarea, select {
+    @apply bg-background border border-input;
+    font-size: 1rem;
+    color: hsl(var(--foreground));
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+/* ============================================
+   DYSLEXIA-FRIENDLY MODE
+   Activated via .dyslexic-font class on <html>
+   ============================================ */
+html.dyslexic-font {
+  /* Cream background reduces visual stress */
+  --background: 45 30% 97%;
+  --card: 45 25% 96%;
+  --popover: 45 25% 96%;
+  /* Solid black text for maximum contrast */
+  --foreground: 0 0% 0%;
+  --card-foreground: 0 0% 0%;
+  --popover-foreground: 0 0% 0%;
+  --muted-foreground: 0 0% 15%;
+  /* Dark blue primary - easier to read */
+  --primary: 240 100% 25%;
+  --border: 30 15% 80%;
+  --input: 30 15% 85%;
+}
+
+html.dyslexic-font.dark {
+  /* Brighter dark mode - warm medium gray, not oppressive */
+  --background: 220 12% 28%;
+  --foreground: 0 0% 100%;
+  --card: 220 12% 33%;
+  --card-foreground: 0 0% 100%;
+  --popover: 220 12% 35%;
+  --popover-foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 92%;
+  --primary: 220 90% 72%;
+  --border: 220 12% 42%;
+  --input: 220 12% 40%;
+}
+
+html.dyslexic-font body {
+  font-family: 'OpenDyslexic', 'Arial', 'Verdana', 'Comic Sans MS', sans-serif !important;
+  line-height: 1.8 !important;
+  letter-spacing: 0.07em !important;
+  word-spacing: 0.12em !important;
+  font-size: 18px !important;
+}
+
+html.dyslexic-font h1,
+html.dyslexic-font h2,
+html.dyslexic-font h3,
+html.dyslexic-font h4,
+html.dyslexic-font h5,
+html.dyslexic-font h6 {
+  font-family: 'OpenDyslexic', 'Arial', 'Verdana', sans-serif !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.4 !important;
+}
+
+html.dyslexic-font p,
+html.dyslexic-font span,
+html.dyslexic-font li,
+html.dyslexic-font label,
+html.dyslexic-font a {
+  font-family: 'OpenDyslexic', 'Arial', 'Verdana', sans-serif !important;
+  letter-spacing: 0.05em !important;
+}
+
+html.dyslexic-font input,
+html.dyslexic-font textarea,
+html.dyslexic-font select,
+html.dyslexic-font button {
+  font-family: 'OpenDyslexic', 'Arial', 'Verdana', sans-serif !important;
+  letter-spacing: 0.03em !important;
+}
+
+/* Replace italics with bold + underline in dyslexia mode */
+html.dyslexic-font em,
+html.dyslexic-font i,
+html.dyslexic-font .italic {
+  font-style: normal !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+
+/* Increase text sizes in dyslexia mode */
+html.dyslexic-font .text-xs { font-size: 0.95rem !important; }
+html.dyslexic-font .text-sm { font-size: 1.05rem !important; }
+html.dyslexic-font .text-base { font-size: 1.15rem !important; }
+html.dyslexic-font .text-lg { font-size: 1.3rem !important; }
+html.dyslexic-font .text-xl { font-size: 1.5rem !important; }
+
+/* ============================================
+   REDUCE MOTION MODE
+   ============================================ */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* ============================================
+   LARGE CLICK TARGETS MODE
+   ============================================ */
+.large-click-targets button,
+.large-click-targets a,
+.large-click-targets [role="button"],
+.large-click-targets input[type="checkbox"],
+.large-click-targets input[type="radio"] {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  padding: 12px 16px !important;
+}
+
+/* ============================================
+   COLOR BLIND MODES
+   ============================================ */
+.color-blind-protanopia {
+  filter: url('#protanopia-filter');
+}
+
+.color-blind-deuteranopia {
+  filter: url('#deuteranopia-filter');
+}
+
+.color-blind-tritanopia {
+  filter: url('#tritanopia-filter');
+}
+
+/* ============================================
+   UI COMPONENT ENHANCEMENTS
+   ============================================ */
+
+/* Professional Button Styling */
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  @apply transition-all duration-200 ease-out;
+  @apply shadow-sm hover:shadow-md;
+  @apply font-semibold;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  @apply transition-all duration-200 ease-out;
+  @apply border border-border;
+  @apply font-medium;
+}
+
+/* Card Styling */
+.card-elevated {
+  @apply bg-card border border-border;
+  @apply shadow-sm hover:shadow-md;
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-elevated:hover {
+  transform: translateY(-2px);
+}
+
+/* Professional Badge */
+.badge-professional {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  @apply bg-primary/10 text-primary border border-primary/20;
+}
+
+/* Focus States - Accessibility */
+*:focus-visible {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+}
+
+/* Safe area insets for mobile devices */
+.safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* PWA install prompt */
+.install-prompt {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 12px 24px;
+  border-radius: 50px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slide-up 0.5s ease-out;
+}
+
+/* ============================================
+   HYDRATION ERROR SUPPRESSION
+   ============================================ */
+[data-hydration-error] {
+  display: none !important;
+}
+
+/* ============================================
+   DARK MODE — AUTOMATIC UTILITY OVERRIDES
+   Navy-blue palette matching OKAYiT mockup.
+   ============================================ */
+
+/* Body gradient — deep navy-blue base */
+.dark body {
+  background: linear-gradient(135deg, #090B24 0%, #0E1038 40%, #111340 70%, #0B0D2E 100%) !important;
+}
+
+/* Page-level gradient wrappers → remove light gradients so dark body shows */
+.dark .min-h-screen.bg-gradient-to-br {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+.dark .bg-gradient-to-br.from-purple-50,
+.dark .bg-gradient-to-br.from-blue-50 {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+.dark .from-purple-50 { --tw-gradient-from: transparent !important; }
+.dark .via-blue-50 { --tw-gradient-via: transparent !important; }
+.dark .to-green-50 { --tw-gradient-to: transparent !important; }
+
+/* White / gray backgrounds → solid navy card surfaces */
+.dark .bg-white { background-color: #161840 !important; }
+.dark .bg-white\/90 { background-color: rgba(22,24,64,0.92) !important; }
+.dark .bg-white\/80 { background-color: rgba(22,24,64,0.85) !important; }
+.dark .bg-gray-50 { background-color: #121438 !important; }
+.dark .bg-gray-100 { background-color: #1a1d4d !important; }
+.dark .bg-gray-200 { background-color: #1e2155 !important; }
+
+/* Coloured -50 backgrounds → tinted navy */
+.dark .bg-purple-50 { background-color: rgba(147,51,234,0.15) !important; }
+.dark .bg-blue-50 { background-color: rgba(59,130,246,0.15) !important; }
+.dark .bg-green-50 { background-color: rgba(16,185,129,0.15) !important; }
+.dark .bg-orange-50 { background-color: rgba(249,115,22,0.15) !important; }
+.dark .bg-pink-50 { background-color: rgba(236,72,153,0.15) !important; }
+.dark .bg-amber-50 { background-color: rgba(245,158,11,0.15) !important; }
+.dark .bg-red-50 { background-color: rgba(239,68,68,0.15) !important; }
+.dark .bg-yellow-50 { background-color: rgba(234,179,8,0.15) !important; }
+.dark .bg-indigo-50 { background-color: rgba(99,102,241,0.15) !important; }
+.dark .bg-cyan-50 { background-color: rgba(6,182,212,0.15) !important; }
+.dark .bg-teal-50 { background-color: rgba(20,184,166,0.15) !important; }
+
+/* Coloured -100 backgrounds */
+.dark .bg-purple-100 { background-color: rgba(147,51,234,0.22) !important; }
+.dark .bg-blue-100 { background-color: rgba(59,130,246,0.22) !important; }
+.dark .bg-green-100 { background-color: rgba(16,185,129,0.22) !important; }
+.dark .bg-orange-100 { background-color: rgba(249,115,22,0.22) !important; }
+.dark .bg-pink-100 { background-color: rgba(236,72,153,0.22) !important; }
+.dark .bg-amber-100 { background-color: rgba(245,158,11,0.22) !important; }
+.dark .bg-red-100 { background-color: rgba(239,68,68,0.22) !important; }
+.dark .bg-yellow-100 { background-color: rgba(234,179,8,0.22) !important; }
+.dark .bg-indigo-100 { background-color: rgba(99,102,241,0.22) !important; }
+
+/* Coloured -200 backgrounds */
+.dark .bg-purple-200 { background-color: rgba(147,51,234,0.28) !important; }
+.dark .bg-blue-200 { background-color: rgba(59,130,246,0.28) !important; }
+
+/* Borders → blue-tinted glow */
+.dark .border-gray-100 { border-color: rgba(100,120,255,0.08) !important; }
+.dark .border-gray-200 { border-color: rgba(100,120,255,0.12) !important; }
+.dark .border-gray-300 { border-color: rgba(100,120,255,0.18) !important; }
+.dark .border-purple-200 { border-color: rgba(147,100,255,0.25) !important; }
+.dark .border-purple-300 { border-color: rgba(147,100,255,0.35) !important; }
+.dark .border-blue-200 { border-color: rgba(80,130,255,0.25) !important; }
+.dark .border-blue-300 { border-color: rgba(80,130,255,0.35) !important; }
+.dark .border-green-200 { border-color: rgba(16,185,129,0.25) !important; }
+.dark .border-green-300 { border-color: rgba(16,185,129,0.35) !important; }
+.dark .border-orange-200 { border-color: rgba(249,140,60,0.25) !important; }
+.dark .border-orange-300 { border-color: rgba(249,140,60,0.35) !important; }
+.dark .border-pink-200 { border-color: rgba(236,72,153,0.25) !important; }
+.dark .border-red-200 { border-color: rgba(239,68,68,0.25) !important; }
+.dark .border-amber-200 { border-color: rgba(245,158,11,0.25) !important; }
+.dark .border-yellow-200 { border-color: rgba(234,179,8,0.25) !important; }
+.dark .border-indigo-200 { border-color: rgba(99,102,241,0.25) !important; }
+
+/* Text colors — bright white hierarchy */
+.dark .text-gray-950 { color: #ffffff !important; }
+.dark .text-gray-900 { color: #f0f0ff !important; }
+.dark .text-gray-800 { color: #e0e0f0 !important; }
+.dark .text-gray-700 { color: #c8c8e0 !important; }
+.dark .text-gray-600 { color: #a8a8cc !important; }
+.dark .text-gray-500 { color: #9090b8 !important; }
+.dark .text-gray-400 { color: #7878a0 !important; }
+.dark .text-gray-300 { color: #606088 !important; }
+
+/* Coloured text → bright vivid versions */
+.dark .text-purple-800,
+.dark .text-purple-700,
+.dark .text-purple-600 { color: #c084fc !important; }
+.dark .text-blue-800,
+.dark .text-blue-700,
+.dark .text-blue-600 { color: #60a5fa !important; }
+.dark .text-green-800,
+.dark .text-green-700,
+.dark .text-green-600 { color: #34d399 !important; }
+.dark .text-orange-800,
+.dark .text-orange-700 { color: #fb923c !important; }
+.dark .text-amber-600,
+.dark .text-amber-700 { color: #fbbf24 !important; }
+.dark .text-pink-600,
+.dark .text-pink-800 { color: #f472b6 !important; }
+.dark .text-red-800,
+.dark .text-red-900,
+.dark .text-red-600 { color: #f87171 !important; }
+.dark .text-indigo-600 { color: #818cf8 !important; }
+
+/* Ring/focus */
+.dark .ring-purple-400 { --tw-ring-color: rgba(192,132,252,0.5) !important; }
+.dark .ring-purple-300 { --tw-ring-color: rgba(192,132,252,0.35) !important; }
+
+/* Hover states */
+.dark .hover\:bg-gray-50:hover { background-color: #1a1d4d !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #1e2155 !important; }
+.dark .hover\:bg-white\/80:hover { background-color: rgba(22,24,64,0.9) !important; }
+.dark .hover\:bg-purple-50:hover { background-color: rgba(147,51,234,0.2) !important; }
+.dark .hover\:border-purple-300:hover { border-color: rgba(147,100,255,0.45) !important; }
+.dark .hover\:border-purple-200:hover { border-color: rgba(147,100,255,0.3) !important; }
+.dark .hover\:border-orange-300:hover { border-color: rgba(249,140,60,0.45) !important; }
+
+/* Shadows — subtle blue glow */
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,30,0.5), 0 0 0 1px rgba(100,120,255,0.04) !important; }
+.dark .shadow-md { box-shadow: 0 4px 12px rgba(0,0,30,0.6), 0 0 0 1px rgba(100,120,255,0.06) !important; }
+.dark .shadow-lg { box-shadow: 0 10px 25px rgba(0,0,30,0.6), 0 0 0 1px rgba(100,120,255,0.08) !important; }
+.dark .hover\:shadow-md:hover { box-shadow: 0 6px 16px rgba(0,0,30,0.7), 0 0 0 1px rgba(100,120,255,0.1) !important; }
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar-track { background: #0B0D2E; }
+.dark ::-webkit-scrollbar-thumb { background: #252760; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #303280; }
+
+/* Decorative blur orbs in dark mode */
+.dark .bg-purple-200\/30 { background-color: rgba(100,80,200,0.12) !important; }
+.dark .bg-blue-200\/30 { background-color: rgba(60,100,220,0.1) !important; }
+
+/* Gradient via/to-white → transparent in dark */
+.dark .via-white { --tw-gradient-via: transparent !important; }
+.dark .to-white { --tw-gradient-to: rgba(22,24,64,0.6) !important; }
+.dark .from-blue-50 { --tw-gradient-from: rgba(59,130,246,0.12) !important; }
+.dark .to-cyan-50 { --tw-gradient-to: rgba(6,182,212,0.08) !important; }
+.dark .from-pink-50 { --tw-gradient-from: rgba(236,72,153,0.12) !important; }
+.dark .to-pink-50 { --tw-gradient-to: rgba(236,72,153,0.08) !important; }
+.dark .from-green-50 { --tw-gradient-from: rgba(16,185,129,0.12) !important; }
+.dark .to-emerald-50 { --tw-gradient-to: rgba(16,185,129,0.08) !important; }
+.dark .from-orange-50 { --tw-gradient-from: rgba(249,115,22,0.12) !important; }
+
+/* White with opacity variants */
+.dark .bg-white\/95 { background-color: rgba(22,24,64,0.95) !important; }
+.dark .bg-white\/70 { background-color: rgba(22,24,64,0.75) !important; }
+.dark .bg-white\/60 { background-color: rgba(22,24,64,0.65) !important; }
+.dark .bg-white\/50 { background-color: rgba(22,24,64,0.55) !important; }
+.dark .bg-white\/30 { background-color: rgba(22,24,64,0.35) !important; }
+.dark .bg-white\/20 { background-color: rgba(100,110,200,0.15) !important; }
+.dark .bg-white\/10 { background-color: rgba(100,110,200,0.1) !important; }
+
+/* Input/select in dark mode */
+.dark input, .dark textarea, .dark select {
+  background-color: #121438 !important;
+  border-color: rgba(100,120,255,0.15) !important;
+  color: #f0f0ff !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #7878a0 !important;
+}
+
+/* Additional gray overrides */
+.dark .bg-gray-300 { background-color: #303280 !important; }
+.dark .bg-gray-400 { background-color: #404290 !important; }
+.dark .bg-gray-500 { background-color: #5050a0 !important; }
+.dark .border-violet-100 { border-color: rgba(139,92,246,0.2) !important; }
+.dark .border-violet-200 { border-color: rgba(139,92,246,0.3) !important; }
+
+/* Slate text → same bright hierarchy as gray */
+.dark .text-slate-900 { color: #f0f0ff !important; }
+.dark .text-slate-800 { color: #e0e0f0 !important; }
+.dark .text-slate-700 { color: #c8c8e0 !important; }
+.dark .text-slate-600 { color: #a8a8cc !important; }
+.dark .text-slate-500 { color: #9090b8 !important; }
+.dark .text-slate-400 { color: #7878a0 !important; }
+
+/* Slate backgrounds */
+.dark .bg-slate-50 { background-color: #121438 !important; }
+.dark .bg-slate-100 { background-color: #1a1d4d !important; }
+.dark .bg-slate-200 { background-color: #1e2155 !important; }
+.dark .bg-slate-800 { background-color: #1a1d4d !important; }
+.dark .bg-slate-900 { background-color: #121438 !important; }
+
+/* Divide colors */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(100,120,255,0.08) !important; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(100,120,255,0.12) !important; }
+
+/* ============================================
+   WHITE-LABEL BRAND COLOUR OVERRIDES
+   When --brand-color is set by a care home's
+   custom brandColor, key UI elements adapt.
+   ============================================ */
+:root {
+  --brand-color: #7c3aed; /* default OKAYiT violet */
+  --brand-color-light: #7c3aed18;
+}
+
+/* Brand-coloured gradient headers when custom colour is active */
+[style*="--brand-color"] .brand-gradient {
+  background: linear-gradient(135deg, var(--brand-color), var(--brand-color)) !important;
+}
+
+/* Brand accent for interactive elements */
+[style*="--brand-color"] .brand-accent {
+  color: var(--brand-color) !important;
+}
+
+[style*="--brand-color"] .brand-bg {
+  background-color: var(--brand-color) !important;
+}
+
+/* ============================================
+   CALM CORNER - ambient drifting blobs
+   (disabled automatically by .reduce-motion)
+   ============================================ */
+@keyframes calmDrift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -20px) scale(1.08); }
+  66%  { transform: translate(-20px, 25px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.calm-blob { animation: calmDrift 18s ease-in-out infinite; }
+.calm-blob-2 { animation-duration: 24s; animation-delay: -6s; }
+.calm-blob-3 { animation-duration: 21s; animation-delay: -12s; }
+
+/* ============================================
+   MOOD RESPONSE - the platform gently reacts to
+   today's check-in via html[data-mood] set by
+   lib/mood-response.tsx. Opt-in via .mood-strip;
+   never affects unrelated UI or readability.
+   ============================================ */
+.mood-strip {
+  display: none;
+  height: 3px;
+  width: 100%;
+  border-radius: 9999px;
+}
+html[data-mood] .mood-strip { display: block; }
+html[data-mood="low"]  .mood-strip { background: linear-gradient(90deg, #6366f1, #38bdf8); }
+html[data-mood="mid"]  .mood-strip { background: linear-gradient(90deg, #f59e0b, #fb923c); }
+html[data-mood="high"] .mood-strip { background: linear-gradient(90deg, #10b981, #34d399); }
+
+/* Gentle ambient wash at the very top edge \u2014 subtle, behind content,
+   never over text. Kept low-opacity so readability is unaffected. */
+.mood-ambient {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 120px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1s ease, background 1s ease;
+}
+html[data-mood="low"]  .mood-ambient { opacity: 1; background: linear-gradient(to bottom, rgba(99,102,241,0.10), transparent); }
+html[data-mood="mid"]  .mood-ambient { opacity: 1; background: linear-gradient(to bottom, rgba(245,158,11,0.10), transparent); }
+html[data-mood="high"] .mood-ambient { opacity: 1; background: linear-gradient(to bottom, rgba(16,185,129,0.10), transparent); }
+.reduce-motion .mood-ambient { transition: none; }
+
+/* ============================================================
+   OKAYiT — Young Person Experience v2 : premium theme tokens
+   Light + dark. Colour is a signal; the ground stays quiet.
+   ============================================================ */
+.yp-root {
+  --yp-ground: #F6F5F2;
+  --yp-surface: #FFFFFF;
+  --yp-surface-2: #F1EFEA;
+  --yp-ink: #20222A;
+  --yp-ink-soft: #63677A;
+  --yp-line: #E8E5DE;
+  --yp-shadow-sm: 0 1px 2px rgba(20,20,28,.04), 0 6px 16px rgba(20,20,28,.05);
+  --yp-shadow-md: 0 2px 8px rgba(20,20,28,.05), 0 18px 40px rgba(20,20,28,.08);
+  --yp-glass: rgba(246,245,242,.72);
+  color-scheme: light;
+}
+.dark .yp-root {
+  --yp-ground: #0B0B0F;
+  --yp-surface: #16161C;
+  --yp-surface-2: #212230;
+  --yp-ink: #F3F3F7;
+  --yp-ink-soft: #9EA2B4;
+  --yp-line: #2A2B36;
+  --yp-shadow-sm: 0 1px 2px rgba(0,0,0,.5), 0 6px 16px rgba(0,0,0,.4);
+  --yp-shadow-md: 0 2px 8px rgba(0,0,0,.55), 0 20px 44px rgba(0,0,0,.5);
+  --yp-glass: rgba(11,11,15,.72);
+  color-scheme: dark;
+}
+/* Accent-derived helpers (adapt to the active surface automatically) */
+.yp-tint  { background: color-mix(in srgb, var(--accent) 10%, var(--yp-surface)); }
+.yp-tint2 { background: color-mix(in srgb, var(--accent) 14%, var(--yp-surface)); }
+.yp-card {
+  background: var(--yp-surface);
+  border: 1px solid var(--yp-line);
+  box-shadow: var(--yp-shadow-sm);
+}
+.yp-card-press { transition: transform .18s cubic-bezier(.2,.7,.2,1), box-shadow .18s ease; }
+.yp-card-press:active { transform: scale(.975); }
+.yp-elev { box-shadow: var(--yp-shadow-md); }
+.yp-fade { animation: ypFade .5s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes ypFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.reduce-motion .yp-fade { animation: none; }
+.reduce-motion .yp-card-press { transition: none; }
+/* Focus visibility (WCAG 2.2) */
+.yp-root :focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 14px;
+}
+
+/* ------------------------------------------------------------------ */
+/* OKAYiT — Young Person content pages : unified theme compatibility   */
+/* Scoped to .yp-legacy so the premium shell is never affected.        */
+/* Remaps the older content pages' hardcoded colours onto the shared   */
+/* token system, giving one colour scheme + full dark mode + accent.   */
+/* ------------------------------------------------------------------ */
+
+/* Page canvas — kill the mismatched full-page gradients, use ground */
+.yp-legacy .min-h-screen { background: var(--yp-ground) !important; }
+
+/* Surfaces / cards -> unified surface (auto light+dark) */
+.yp-legacy .bg-white,
+.yp-legacy .bg-white\/95,
+.yp-legacy .bg-white\/90,
+.yp-legacy .bg-white\/80,
+.yp-legacy .bg-white\/70,
+.yp-legacy .bg-white\/60,
+.yp-legacy .bg-white\/50,
+.yp-legacy .bg-white\/40,
+.yp-legacy .bg-white\/30,
+.yp-legacy .bg-white\/20 { background-color: var(--yp-surface) !important; }
+
+/* Soft tinted panels -> gentle accent tint */
+.yp-legacy .bg-gray-50,
+.yp-legacy .bg-slate-50,
+.yp-legacy .bg-slate-100,
+.yp-legacy .bg-gray-100,
+.yp-legacy .bg-purple-50,
+.yp-legacy .bg-violet-50,
+.yp-legacy .bg-indigo-50,
+.yp-legacy .bg-blue-50,
+.yp-legacy .bg-pink-50,
+.yp-legacy .bg-emerald-50,
+.yp-legacy .bg-green-50 { background-color: color-mix(in srgb, var(--accent) 8%, var(--yp-surface)) !important; }
+
+/* Ink (headings / body) */
+.yp-legacy .text-gray-900, .yp-legacy .text-gray-800,
+.yp-legacy .text-slate-900, .yp-legacy .text-slate-800,
+.yp-legacy .text-zinc-900, .yp-legacy .text-zinc-800,
+.yp-legacy .text-black { color: var(--yp-ink) !important; }
+
+/* Ink-soft (secondary / muted) */
+.yp-legacy .text-gray-700, .yp-legacy .text-gray-600, .yp-legacy .text-gray-500, .yp-legacy .text-gray-400, .yp-legacy .text-gray-300,
+.yp-legacy .text-slate-700, .yp-legacy .text-slate-600, .yp-legacy .text-slate-500, .yp-legacy .text-slate-400, .yp-legacy .text-slate-300, .yp-legacy .text-slate-200,
+.yp-legacy .text-zinc-600, .yp-legacy .text-zinc-500, .yp-legacy .text-zinc-400 { color: var(--yp-ink-soft) !important; }
+
+/* Accent text -> per-home accent */
+.yp-legacy .text-purple-800, .yp-legacy .text-purple-700, .yp-legacy .text-purple-600, .yp-legacy .text-purple-500,
+.yp-legacy .text-violet-700, .yp-legacy .text-violet-600, .yp-legacy .text-violet-500, .yp-legacy .text-violet-400,
+.yp-legacy .text-indigo-700, .yp-legacy .text-indigo-600, .yp-legacy .text-indigo-500 { color: var(--accent) !important; }
+
+/* Borders -> unified line */
+.yp-legacy .border-gray-100, .yp-legacy .border-gray-200, .yp-legacy .border-gray-300,
+.yp-legacy .border-slate-100, .yp-legacy .border-slate-200,
+.yp-legacy .border-purple-100, .yp-legacy .border-purple-200,
+.yp-legacy .border-violet-100, .yp-legacy .border-violet-200,
+.yp-legacy .border-indigo-100, .yp-legacy .border-white { border-color: var(--yp-line) !important; }
+
+/* Give plain white cards a premium finish (radius + soft shadow) */
+.yp-legacy .bg-white,
+.yp-legacy .bg-white\/90,
+.yp-legacy .bg-white\/80 { box-shadow: var(--yp-shadow-sm); }
+
+/* Dividers */
+.yp-legacy .divide-gray-100 > * + *,
+.yp-legacy .divide-gray-200 > * + * { border-color: var(--yp-line) !important; }
