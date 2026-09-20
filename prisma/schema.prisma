@@ -1,14 +1,927 @@
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    output = "/home/ubuntu/qr_house_tour_demo/app/node_modules/.prisma/client"
+  provider = "prisma-client-js"
+  binaryTargets = [
+    "native",
+    "debian-openssl-3.0.x",       // Debian 12 / Ubuntu 22.04+. Render, Railway, most VPS
+    "rhel-openssl-3.0.x",         // Amazon Linux 2023, Vercel serverless
+    "linux-musl-openssl-3.0.x"    // Alpine 3.17+ on x64, common in Docker
+  ]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
+// ============================================
+// OKAYiT SCHEMA — Phase 3: Identity & Access
+// ============================================
+// Implements RBAC, care home multi-tenancy,
+// invite-code auth for young people, and
+// consent-ready data model.
+// Last updated: March 2026
+
+// ── Role Enum ──────────────────────────────────
+enum UserRole {
+  SUPER_ADMIN
+  HOME_ADMIN
+  STAFF
+  YOUNG_PERSON
+}
+
+enum AccountStatus {
+  PENDING // Invite created, not yet activated
+  ACTIVE
+  SUSPENDED // Temporarily disabled
+  ARCHIVED // Left care / soft-deleted
+}
+
+// ── Care Homes ─────────────────────────────────
+model CareHome {
+  id          String   @id @default(cuid())
+  name        String   @unique // 'claudius', 'winchester', 'kingsnorth'
+  displayName String // 'Claudius House'
+  description String?  @db.Text // About the care home
+  address     String? // Physical address
+  phone       String? // Contact number
+  email       String? // Contact email
+  brandColor  String? // Custom brand colour hex (white-label)
+  tourRooms   Json? // Array of room objects for house tour
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  inviteCodes InviteCode[]
+  staff       StaffMember[] @relation("HomeStaff")
+  guideLinks  GuideLink[]   @relation("HomeGuideLinks")
+
+  @@index([isActive])
+}
+
+// ── Users (all roles) ──────────────────────────
+model User {
+  id            String        @id @default(cuid())
+  name          String? // Set by NextAuth adapter (Google profile name)
+  email         String?       @unique // Required for staff/admin, null for YP
+  emailVerified DateTime? // Set by NextAuth adapter for OAuth
+  image         String? // Profile image from OAuth provider
+  password      String? // bcrypt hash — null for invite-code-only YP or OAuth
+  displayName   String        @default("") // Chosen by user (or set by staff for YP)
+  role          UserRole      @default(STAFF)
+  status        AccountStatus @default(PENDING)
+  authProvider  String? // 'google', 'credentials', 'invite-code'
+  careHomeId    String?
+  careHome      CareHome?     @relation(fields: [careHomeId], references: [id])
+  createdById   String? // Staff/admin who created this account
+  createdBy     User?         @relation("CreatedUsers", fields: [createdById], references: [id])
+  createdUsers  User[]        @relation("CreatedUsers")
+  lastLoginAt   DateTime?
+  lastLoginIp   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  sessions       Session[]
+  accounts       Account[] // OAuth provider accounts
+  inviteCodes    InviteCode[]    @relation("InviteCreator")
+  consentRecords ConsentRecord[] @relation("ConsentSubject")
+  consentGivenBy ConsentRecord[] @relation("ConsentRecorder")
+  auditLogs      AuditLog[]      @relation("AuditActor")
+
+  @@index([email])
+  @@index([role, status])
+  @@index([careHomeId, role])
+}
+
+// ── OAuth Accounts (NextAuth adapter) ─────────────
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// ── Verification Tokens (NextAuth adapter) ────────
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Sessions (NextAuth managed) ────────────────
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  @@index([userId])
+}
+
+// ── Invite Codes (for YP account activation) ───
+model InviteCode {
+  id           String    @id @default(cuid())
+  code         String    @unique // 6-char alphanumeric
+  careHomeId   String
+  careHome     CareHome  @relation(fields: [careHomeId], references: [id])
+  createdById  String
+  createdBy    User      @relation("InviteCreator", fields: [createdById], references: [id])
+  displayName  String // Pre-set display name for YP
+  usedAt       DateTime? // null = unused
+  usedByUserId String? // ID of user who activated
+  expiresAt    DateTime // Invite codes expire after 7 days
+  createdAt    DateTime  @default(now())
+
+  @@index([code])
+  @@index([careHomeId])
+  @@index([expiresAt])
+}
+
+// ── Consent Records ────────────────────────────
+model ConsentRecord {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation("ConsentSubject", fields: [userId], references: [id])
+  consentType      String // 'account_creation', 'data_processing', 'wellbeing_sharing'
+  grantedBy        String // Name of corporate parent/guardian
+  grantedByRole    String // 'social_worker', 'care_home_manager', 'guardian'
+  scopeDescription String    @db.Text // Human-readable description
+  lawfulBasis      String // 'consent', 'legitimate_interest', 'vital_interest'
+  isActive         Boolean   @default(true)
+  withdrawnAt      DateTime?
+  withdrawnBy      String?
+  recordedById     String?
+  recordedBy       User?     @relation("ConsentRecorder", fields: [recordedById], references: [id])
+  ipAddress        String?
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId, consentType])
+  @@index([isActive])
+}
+
+// ── Audit Logs ─────────────────────────────────
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorId      String?
+  actor        User?    @relation("AuditActor", fields: [actorId], references: [id])
+  actorRole    String // Role at time of action
+  actorIp      String?
+  actorDevice  String? // User-Agent
+  action       String // 'CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'
+  resourceType String // 'user', 'session', 'invite_code', 'consent', etc.
+  resourceId   String?
+  careHomeId   String?
+  description  String   @db.Text
+  changes      Json? // {field: {old, new}} for updates
+  sensitivity  String   @default("normal") // 'normal', 'high', 'safeguarding'
+  createdAt    DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([careHomeId, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+}
+
+// Staff profiles for care homes (display profiles, not auth accounts)
+model StaffMember {
+  id            String    @id @default(cuid())
+  name          String
+  role          String
+  shift         String // 'day', 'night', 'both'
+  home          String // 'claudius', 'winchester', 'kingsnorth'
+  careHomeId    String?
+  careHome      CareHome? @relation("HomeStaff", fields: [careHomeId], references: [id])
+  photo         String // emoji or initials
+  description   String    @db.Text
+  interests     String[] // array of interests
+  funFact       String?
+  favoriteQuote String?   @db.Text
+  whenToTalkTo  String?   @db.Text
+  contact       String?
+  color         String // gradient color class
+  isActive      Boolean   @default(true)
+  displayOrder  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([home, shift])
+  @@index([isActive])
+  @@index([careHomeId])
+}
+
+// Aggregated anonymous usage metrics (optional)
+model AnonymousMetrics {
+  id         String   @id @default(cuid())
+  metricType String // 'page_view', 'game_played', 'resource_viewed'
+  metricName String // specific game/resource name
+  count      Int      @default(1)
+  date       String // YYYY-MM-DD for daily aggregation
+  createdAt  DateTime @default(now())
+
+  @@unique([metricType, metricName, date])
+  @@index([date])
+}
+
+// ============================================
+// CONSENT-BASED DATA SHARING
+// Users can OPT-IN to share wellbeing data with staff
+// ============================================
+
+// Admin users for the care home staff
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // hashed
+  name      String
+  role      String // 'admin', 'staff', 'manager'
+  home      String // 'claudius', 'winchester', 'kingsnorth', 'all'
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([home, isActive])
+}
+
+// Consent-based wellbeing check-ins (only stored if user consents)
+model SharedWellbeingCheckin {
+  id           String   @id @default(cuid())
+  anonymousId  String // Device-based anonymous ID, NOT personal info
+  displayName  String? // Optional nickname the user chooses to share
+  home         String // Which care home
+  mood         String // The mood emoji/description
+  moodLevel    Int // 1-10 scale
+  note         String?  @db.Text // Optional note the user shares
+  consentGiven Boolean  @default(true) // User explicitly consented
+  createdAt    DateTime @default(now())
+
+  alertActions AlertAction[]
+
+  @@index([home, createdAt])
+  @@index([anonymousId])
+}
+
+// ============================================
+// SAFEGUARDING — Alert Resolution Tracking
+// ============================================
+// Immutable: records can be CREATED and APPENDED to, never deleted or edited.
+// Every RED/AMBER check-in auto-creates an AlertAction. Staff must acknowledge,
+// act, and resolve. Unresolved alerts auto-escalate (RED: 15min, AMBER: 24h).
+
+model AlertAction {
+  id               String                 @id @default(cuid())
+  checkinId        String
+  checkin          SharedWellbeingCheckin @relation(fields: [checkinId], references: [id])
+  alertLevel       String // 'RED' or 'AMBER' — captured at creation time
+  status           String                 @default("OPEN") // OPEN → ACKNOWLEDGED → IN_PROGRESS → RESOLVED / ESCALATED
+  acknowledgedAt   DateTime?
+  acknowledgedBy   String? // Staff name who acknowledged
+  acknowledgedById String? // Staff user id or admin id
+  actions          Json? // Append-only array: [{action, note, actorName, actorId, actorRole, timestamp}]
+  escalatedAt      DateTime?
+  escalatedReason  String? // e.g. "Auto-escalated: unacknowledged after 15 minutes"
+  autoEscalated    Boolean                @default(false)
+  resolvedAt       DateTime?
+  resolvedBy       String? // Staff name who resolved
+  resolvedById     String? // Staff user id or admin id
+  outcome          String?                @db.Text // Required at resolution — what happened
+  careHome         String // Denormalised for fast querying
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([careHome, status, createdAt])
+  @@index([checkinId])
+  @@index([status, createdAt])
+  @@index([alertLevel, status])
+}
+
+// Consent-based progress sharing (only stored if user consents)
+model SharedProgress {
+  id           String   @id @default(cuid())
+  anonymousId  String // Device-based anonymous ID
+  displayName  String? // Optional nickname
+  home         String // Which care home
+  progressType String // 'story', 'game', 'resource', 'certificate'
+  progressData String   @db.Text // JSON data of progress
+  consentGiven Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([home, createdAt])
+  @@index([anonymousId])
+}
+
+// Public marketing site: pilot enquiry / contact form submissions
+model PlatformEnquiry {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  organisation String // Home or local authority
+  email        String
+  message      String   @db.Text
+  ipHash       String? // Hashed IP for basic spam/rate control
+  handled      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([handled, createdAt])
+}
+
+// ============================================
+// KEYWORK SESSION - Staying Safe Online
+// ============================================
+// Records the LIFECYCLE of a keywork session only.
+// It never stores scenario answers, free text, warm up
+// content, or any password practice input. Those never
+// leave the young person's device.
+
+model KeyworkSession {
+  id                String    @id @default(cuid())
+  module            String    @default("staying-safe-online")
+  track             String // 'A' or 'B'
+  careHome          String // denormalised for fast querying
+  keyWorkerName     String // who opened the session
+  keyWorkerId       String? // staff user id or admin id, if known
+  startedAt         DateTime  @default(now())
+  // Which section ids were completed. Just the ids, nothing else.
+  sectionsCompleted Json      @default("[]")
+  paused            Boolean   @default(false)
+  exited            Boolean   @default(false)
+  completedAt       DateTime?
+  // The personal plan text, ONLY if the young person chose to save it.
+  planSaved         Boolean   @default(false)
+  planText          String?   @db.Text
+  flagRaised        Boolean   @default(false)
+  updatedAt         DateTime  @updatedAt
+
+  flags KeyworkSafeguardingFlag[]
+
+  @@index([careHome, startedAt])
+  @@index([module, startedAt])
+}
+
+// Mandatory safeguarding flag raised by "this has happened to me".
+// Always fires. Never a configurable setting. Stores WHICH scenario
+// the flag was raised on, never which option the young person chose.
+model KeyworkSafeguardingFlag {
+  id             String          @id @default(cuid())
+  sessionId      String?
+  session        KeyworkSession? @relation(fields: [sessionId], references: [id])
+  module         String          @default("staying-safe-online")
+  track          String
+  careHome       String
+  keyWorkerName  String
+  scenarioId     String // which scenario card, e.g. 'sc-image-pressure'
+  scenarioTitle  String
+  recipient      String // named on-shift recipient the alert reached
+  emailSent      Boolean         @default(false)
+  // Home actioning fields, append-only in spirit.
+  status         String          @default("OPEN") // OPEN -> ACKNOWLEDGED -> RESOLVED
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+  outcome        String?         @db.Text
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([careHome, status, createdAt])
+  @@index([module, createdAt])
+}
+
+// ============================================
+// PERSONALISED GUIDE LINK CONTAINMENT (OK-14)
+// ============================================
+// The personalised welcome guide holds a named child's
+// preferred name, room, key worker and sometimes a photo.
+// It must NEVER be public. It is reachable ONLY through a
+// signed, expiring, single use, revocable token that is
+// exchanged for a short lived server side grant (cookie).
+// A raw token is NEVER stored anywhere. Only its SHA-256
+// hash and the last four characters (to identify a link
+// in a staff list) are persisted.
+model GuideLink {
+  id          String   @id @default(cuid())
+  careHomeId  String
+  careHome    CareHome @relation("HomeGuideLinks", fields: [careHomeId], references: [id])
+
+  tokenHash   String   @unique // SHA-256 hex of the raw 64-hex-char token
+  last4       String // last four chars of the raw token, staff identification only
+
+  // Personalised child data — served only behind a valid grant, never public
+  childPreferredName String
+  childRoom          String?
+  keyWorkerName      String?
+  photoStoragePath   String? // storage PATH, never a URL. Served via signed URL that expires with the grant.
+
+  // Lifecycle
+  expiresAt   DateTime
+  useLimit    Int       @default(1)
+  useCount    Int       @default(0)
+  firstUsedAt DateTime?
+  lastUsedAt  DateTime?
+  revoked     Boolean   @default(false)
+  revokedAt   DateTime?
+  revokedById String?
+
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  grants GuideGrant[]
+
+  @@index([careHomeId, revoked])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+// A short lived grant created after a valid token exchange.
+// Set in a __Host- cookie. Only its hash is stored. Deleted
+// when the parent link is revoked so an open session dies at once.
+model GuideGrant {
+  id          String   @id @default(cuid())
+  grantHash   String   @unique // SHA-256 hex of the raw grant secret held in the cookie
+  guideLinkId String
+  guideLink   GuideLink @relation(fields: [guideLinkId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([grantHash])
+  @@index([guideLinkId])
+  @@index([expiresAt])
+}
+// ============================================
+// OKAYiT SCHEMA — Phase 3: Identity & Access
+// ============================================
+// Implements RBAC, care home multi-tenancy,
+// invite-code auth for young people, and
+// consent-ready data model.
+// Last updated: March 2026
+
+// ── Role Enum ──────────────────────────────────
+enum UserRole {
+  SUPER_ADMIN
+  HOME_ADMIN
+  STAFF
+  YOUNG_PERSON
+}
+
+enum AccountStatus {
+  PENDING // Invite created, not yet activated
+  ACTIVE
+  SUSPENDED // Temporarily disabled
+  ARCHIVED // Left care / soft-deleted
+}
+
+// ── Care Homes ─────────────────────────────────
+model CareHome {
+  id          String   @id @default(cuid())
+  name        String   @unique // 'claudius', 'winchester', 'kingsnorth'
+  displayName String // 'Claudius House'
+  description String?  @db.Text // About the care home
+  address     String? // Physical address
+  phone       String? // Contact number
+  email       String? // Contact email
+  brandColor  String? // Custom brand colour hex (white-label)
+  tourRooms   Json? // Array of room objects for house tour
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  inviteCodes InviteCode[]
+  staff       StaffMember[] @relation("HomeStaff")
+  guideLinks  GuideLink[]   @relation("HomeGuideLinks")
+
+  @@index([isActive])
+}
+
+// ── Users (all roles) ──────────────────────────
+model User {
+  id            String        @id @default(cuid())
+  name          String? // Set by NextAuth adapter (Google profile name)
+  email         String?       @unique // Required for staff/admin, null for YP
+  emailVerified DateTime? // Set by NextAuth adapter for OAuth
+  image         String? // Profile image from OAuth provider
+  password      String? // bcrypt hash — null for invite-code-only YP or OAuth
+  displayName   String        @default("") // Chosen by user (or set by staff for YP)
+  role          UserRole      @default(STAFF)
+  status        AccountStatus @default(PENDING)
+  authProvider  String? // 'google', 'credentials', 'invite-code'
+  careHomeId    String?
+  careHome      CareHome?     @relation(fields: [careHomeId], references: [id])
+  createdById   String? // Staff/admin who created this account
+  createdBy     User?         @relation("CreatedUsers", fields: [createdById], references: [id])
+  createdUsers  User[]        @relation("CreatedUsers")
+  lastLoginAt   DateTime?
+  lastLoginIp   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  sessions       Session[]
+  accounts       Account[] // OAuth provider accounts
+  inviteCodes    InviteCode[]    @relation("InviteCreator")
+  consentRecords ConsentRecord[] @relation("ConsentSubject")
+  consentGivenBy ConsentRecord[] @relation("ConsentRecorder")
+  auditLogs      AuditLog[]      @relation("AuditActor")
+
+  @@index([email])
+  @@index([role, status])
+  @@index([careHomeId, role])
+}
+
+// ── OAuth Accounts (NextAuth adapter) ─────────────
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// ── Verification Tokens (NextAuth adapter) ────────
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Sessions (NextAuth managed) ────────────────
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  @@index([userId])
+}
+
+// ── Invite Codes (for YP account activation) ───
+model InviteCode {
+  id           String    @id @default(cuid())
+  code         String    @unique // 6-char alphanumeric
+  careHomeId   String
+  careHome     CareHome  @relation(fields: [careHomeId], references: [id])
+  createdById  String
+  createdBy    User      @relation("InviteCreator", fields: [createdById], references: [id])
+  displayName  String // Pre-set display name for YP
+  usedAt       DateTime? // null = unused
+  usedByUserId String? // ID of user who activated
+  expiresAt    DateTime // Invite codes expire after 7 days
+  createdAt    DateTime  @default(now())
+
+  @@index([code])
+  @@index([careHomeId])
+  @@index([expiresAt])
+}
+
+// ── Consent Records ────────────────────────────
+model ConsentRecord {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation("ConsentSubject", fields: [userId], references: [id])
+  consentType      String // 'account_creation', 'data_processing', 'wellbeing_sharing'
+  grantedBy        String // Name of corporate parent/guardian
+  grantedByRole    String // 'social_worker', 'care_home_manager', 'guardian'
+  scopeDescription String    @db.Text // Human-readable description
+  lawfulBasis      String // 'consent', 'legitimate_interest', 'vital_interest'
+  isActive         Boolean   @default(true)
+  withdrawnAt      DateTime?
+  withdrawnBy      String?
+  recordedById     String?
+  recordedBy       User?     @relation("ConsentRecorder", fields: [recordedById], references: [id])
+  ipAddress        String?
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId, consentType])
+  @@index([isActive])
+}
+
+// ── Audit Logs ─────────────────────────────────
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorId      String?
+  actor        User?    @relation("AuditActor", fields: [actorId], references: [id])
+  actorRole    String // Role at time of action
+  actorIp      String?
+  actorDevice  String? // User-Agent
+  action       String // 'CREATE', 'READ', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'
+  resourceType String // 'user', 'session', 'invite_code', 'consent', etc.
+  resourceId   String?
+  careHomeId   String?
+  description  String   @db.Text
+  changes      Json? // {field: {old, new}} for updates
+  sensitivity  String   @default("normal") // 'normal', 'high', 'safeguarding'
+  createdAt    DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([careHomeId, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+}
+
+// Staff profiles for care homes (display profiles, not auth accounts)
+model StaffMember {
+  id            String    @id @default(cuid())
+  name          String
+  role          String
+  shift         String // 'day', 'night', 'both'
+  home          String // 'claudius', 'winchester', 'kingsnorth'
+  careHomeId    String?
+  careHome      CareHome? @relation("HomeStaff", fields: [careHomeId], references: [id])
+  photo         String // emoji or initials
+  description   String    @db.Text
+  interests     String[] // array of interests
+  funFact       String?
+  favoriteQuote String?   @db.Text
+  whenToTalkTo  String?   @db.Text
+  contact       String?
+  color         String // gradient color class
+  isActive      Boolean   @default(true)
+  displayOrder  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([home, shift])
+  @@index([isActive])
+  @@index([careHomeId])
+}
+
+// Aggregated anonymous usage metrics (optional)
+model AnonymousMetrics {
+  id         String   @id @default(cuid())
+  metricType String // 'page_view', 'game_played', 'resource_viewed'
+  metricName String // specific game/resource name
+  count      Int      @default(1)
+  date       String // YYYY-MM-DD for daily aggregation
+  createdAt  DateTime @default(now())
+
+  @@unique([metricType, metricName, date])
+  @@index([date])
+}
+
+// ============================================
+// CONSENT-BASED DATA SHARING
+// Users can OPT-IN to share wellbeing data with staff
+// ============================================
+
+// Admin users for the care home staff
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // hashed
+  name      String
+  role      String // 'admin', 'staff', 'manager'
+  home      String // 'claudius', 'winchester', 'kingsnorth', 'all'
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([home, isActive])
+}
+
+// Consent-based wellbeing check-ins (only stored if user consents)
+model SharedWellbeingCheckin {
+  id           String   @id @default(cuid())
+  anonymousId  String // Device-based anonymous ID, NOT personal info
+  displayName  String? // Optional nickname the user chooses to share
+  home         String // Which care home
+  mood         String // The mood emoji/description
+  moodLevel    Int // 1-10 scale
+  note         String?  @db.Text // Optional note the user shares
+  consentGiven Boolean  @default(true) // User explicitly consented
+  createdAt    DateTime @default(now())
+
+  alertActions AlertAction[]
+
+  @@index([home, createdAt])
+  @@index([anonymousId])
+}
+
+// ============================================
+// SAFEGUARDING — Alert Resolution Tracking
+// ============================================
+// Immutable: records can be CREATED and APPENDED to, never deleted or edited.
+// Every RED/AMBER check-in auto-creates an AlertAction. Staff must acknowledge,
+// act, and resolve. Unresolved alerts auto-escalate (RED: 15min, AMBER: 24h).
+
+model AlertAction {
+  id               String                 @id @default(cuid())
+  checkinId        String
+  checkin          SharedWellbeingCheckin @relation(fields: [checkinId], references: [id])
+  alertLevel       String // 'RED' or 'AMBER' — captured at creation time
+  status           String                 @default("OPEN") // OPEN → ACKNOWLEDGED → IN_PROGRESS → RESOLVED / ESCALATED
+  acknowledgedAt   DateTime?
+  acknowledgedBy   String? // Staff name who acknowledged
+  acknowledgedById String? // Staff user id or admin id
+  actions          Json? // Append-only array: [{action, note, actorName, actorId, actorRole, timestamp}]
+  escalatedAt      DateTime?
+  escalatedReason  String? // e.g. "Auto-escalated: unacknowledged after 15 minutes"
+  autoEscalated    Boolean                @default(false)
+  resolvedAt       DateTime?
+  resolvedBy       String? // Staff name who resolved
+  resolvedById     String? // Staff user id or admin id
+  outcome          String?                @db.Text // Required at resolution — what happened
+  careHome         String // Denormalised for fast querying
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([careHome, status, createdAt])
+  @@index([checkinId])
+  @@index([status, createdAt])
+  @@index([alertLevel, status])
+}
+
+// Consent-based progress sharing (only stored if user consents)
+model SharedProgress {
+  id           String   @id @default(cuid())
+  anonymousId  String // Device-based anonymous ID
+  displayName  String? // Optional nickname
+  home         String // Which care home
+  progressType String // 'story', 'game', 'resource', 'certificate'
+  progressData String   @db.Text // JSON data of progress
+  consentGiven Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([home, createdAt])
+  @@index([anonymousId])
+}
+
+// Public marketing site: pilot enquiry / contact form submissions
+model PlatformEnquiry {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  organisation String // Home or local authority
+  email        String
+  message      String   @db.Text
+  ipHash       String? // Hashed IP for basic spam/rate control
+  handled      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([handled, createdAt])
+}
+
+// ============================================
+// KEYWORK SESSION - Staying Safe Online
+// ============================================
+// Records the LIFECYCLE of a keywork session only.
+// It never stores scenario answers, free text, warm up
+// content, or any password practice input. Those never
+// leave the young person's device.
+
+model KeyworkSession {
+  id                String    @id @default(cuid())
+  module            String    @default("staying-safe-online")
+  track             String // 'A' or 'B'
+  careHome          String // denormalised for fast querying
+  keyWorkerName     String // who opened the session
+  keyWorkerId       String? // staff user id or admin id, if known
+  startedAt         DateTime  @default(now())
+  // Which section ids were completed. Just the ids, nothing else.
+  sectionsCompleted Json      @default("[]")
+  paused            Boolean   @default(false)
+  exited            Boolean   @default(false)
+  completedAt       DateTime?
+  // The personal plan text, ONLY if the young person chose to save it.
+  planSaved         Boolean   @default(false)
+  planText          String?   @db.Text
+  flagRaised        Boolean   @default(false)
+  updatedAt         DateTime  @updatedAt
+
+  flags KeyworkSafeguardingFlag[]
+
+  @@index([careHome, startedAt])
+  @@index([module, startedAt])
+}
+
+// Mandatory safeguarding flag raised by "this has happened to me".
+// Always fires. Never a configurable setting. Stores WHICH scenario
+// the flag was raised on, never which option the young person chose.
+model KeyworkSafeguardingFlag {
+  id             String          @id @default(cuid())
+  sessionId      String?
+  session        KeyworkSession? @relation(fields: [sessionId], references: [id])
+  module         String          @default("staying-safe-online")
+  track          String
+  careHome       String
+  keyWorkerName  String
+  scenarioId     String // which scenario card, e.g. 'sc-image-pressure'
+  scenarioTitle  String
+  recipient      String // named on-shift recipient the alert reached
+  emailSent      Boolean         @default(false)
+  // Home actioning fields, append-only in spirit.
+  status         String          @default("OPEN") // OPEN -> ACKNOWLEDGED -> RESOLVED
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+  outcome        String?         @db.Text
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([careHome, status, createdAt])
+  @@index([module, createdAt])
+}
+
+// ============================================
+// PERSONALISED GUIDE LINK CONTAINMENT (OK-14)
+// ============================================
+// The personalised welcome guide holds a named child's
+// preferred name, room, key worker and sometimes a photo.
+// It must NEVER be public. It is reachable ONLY through a
+// signed, expiring, single use, revocable token that is
+// exchanged for a short lived server side grant (cookie).
+// A raw token is NEVER stored anywhere. Only its SHA-256
+// hash and the last four characters (to identify a link
+// in a staff list) are persisted.
+model GuideLink {
+  id          String   @id @default(cuid())
+  careHomeId  String
+  careHome    CareHome @relation("HomeGuideLinks", fields: [careHomeId], references: [id])
+
+  tokenHash   String   @unique // SHA-256 hex of the raw 64-hex-char token
+  last4       String // last four chars of the raw token, staff identification only
+
+  // Personalised child data — served only behind a valid grant, never public
+  childPreferredName String
+  childRoom          String?
+  keyWorkerName      String?
+  photoStoragePath   String? // storage PATH, never a URL. Served via signed URL that expires with the grant.
+
+  // Lifecycle
+  expiresAt   DateTime
+  useLimit    Int       @default(1)
+  useCount    Int       @default(0)
+  firstUsedAt DateTime?
+  lastUsedAt  DateTime?
+  revoked     Boolean   @default(false)
+  revokedAt   DateTime?
+  revokedById String?
+
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  grants GuideGrant[]
+
+  @@index([careHomeId, revoked])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+// A short lived grant created after a valid token exchange.
+// Set in a __Host- cookie. Only its hash is stored. Deleted
+// when the parent link is revoked so an open session dies at once.
+model GuideGrant {
+  id          String   @id @default(cuid())
+  grantHash   String   @unique // SHA-256 hex of the raw grant secret held in the cookie
+  guideLinkId String
+  guideLink   GuideLink @relation(fields: [guideLinkId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([grantHash])
+  @@index([guideLinkId])
+  @@index([expiresAt])
+}
 // ============================================
 // OKAYiT SCHEMA — Phase 3: Identity & Access
 // ============================================
